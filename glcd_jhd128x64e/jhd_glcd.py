@@ -1,6 +1,5 @@
 import time
 import RPi.GPIO as GPIO
-
 # 5x7 size font which have characters with ASCII value 32 to 127 that are displayed in GLCD
 look_up = [[0x00, 0x00, 0x00],                    # Space
            [0x00, 0x4f, 0x00],                    # !
@@ -170,16 +169,16 @@ class KS0108(object):
         Description: This function enables Chipset 1(KS0108 IC1) of GLCD.
         :return: None
         """
-        GPIO.output(self.chip_set0, 1)       # Turn ON left controller
-        GPIO.output(self.chip_set1, 0)       # Turn OFF right controller
+        GPIO.output(self.chip_set0, 0)       # Turn ON left controller
+        GPIO.output(self.chip_set1, 1)       # Turn OFF right controller
 
     def use_chipset1(self):
         """
         Description: This function enables Chipset 2(KS0108 IC2) of GLCD.
         :return:
         """
-        GPIO.output(self.chip_set0, 0)       # Turn OFF left controller
-        GPIO.output(self.chip_set1, 1)       # Turn ON right controller
+        GPIO.output(self.chip_set0, 1)       # Turn OFF left controller
+        GPIO.output(self.chip_set1, 0)       # Turn ON right controller
 
     def clear(self):
         """
@@ -218,7 +217,7 @@ class KS0108(object):
         :param mode: When RS = 0 Value is written as command to GLCD if RS = 1 written data is displayed on GLCD
         :return:
         """
-        self.busy_chk()                      # Check if controller is busy
+        # self.busy_chk()                      # Check if controller is busy
         GPIO.output(self.rw, 0)
         GPIO.output(self.rs, mode)
         GPIO.output(self.d0, value & 0x01)
@@ -353,3 +352,30 @@ class KS0108(object):
                     self.go_to_nextline()
                 if self.Cursor_Pos >= 0x80:                               # Shift to chipset 1 if Cursor position > 63
                     self.go_to_chipset(1)
+
+    def print_line(self, srcX, srcY, desX, desY):
+        dx = desX - srcX
+        dy = desY - srcY
+        if abs(dx) > abs(dy):
+            steps = abs(dx)
+        else:
+            steps = abs(dy)
+        Xinc = dx / steps
+        Yinc = dy / steps
+        prevX = srcX
+        prevY = srcY
+        prevWord = 0
+        for i in range(steps):
+            seg = 0 if srcX <= 63 else 1
+            x = srcX if srcX <= 63 else srcX - 64
+            y = srcY // 8
+            word = 2 ** (round(srcY - (8*y)))
+            self.set_cursor(seg, round(y), round(x))
+            if prevX == x and prevY == y:
+                word = word | prevWord
+            self.data_write(word, 1)
+            srcX += Xinc
+            srcY += Yinc
+            prevX = x
+            prevY = y
+            prevWord = word
