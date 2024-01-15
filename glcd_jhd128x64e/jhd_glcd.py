@@ -1,5 +1,6 @@
 import time
 import RPi.GPIO as GPIO
+import numpy as np
 # 5x7 size font which have characters with ASCII value 32 to 127 that are displayed in GLCD
 look_up = [[0x00, 0x00, 0x00],                    # Space
            [0x00, 0x4f, 0x00],                    # !
@@ -120,6 +121,7 @@ class KS0108(object):
         :param chip_set1: Chip selection for KS0108 IC2
         :param reset: reset signal, Display is OFF if reset=0 and ON if reset=1
         """
+        self.mat = np.full((64,128), False)
         self.chip_set0 = chip_set0
         self.chip_set1 = chip_set1
         self.reset = reset
@@ -218,6 +220,9 @@ class KS0108(object):
         :return:
         """
         # self.busy_chk()                      # Check if controller is busy
+        for i in range(8):
+            # self.mat[]
+            pass
         GPIO.output(self.rw, 0)
         GPIO.output(self.rs, mode)
         GPIO.output(self.d0, value & 0x01)
@@ -353,7 +358,7 @@ class KS0108(object):
                 if self.Cursor_Pos >= 0x80:                               # Shift to chipset 1 if Cursor position > 63
                     self.go_to_chipset(1)
 
-    def print_line(self, srcX, srcY, desX, desY):
+    def draw_line(self, srcX, srcY, desX, desY):
         dx = desX - srcX
         dy = desY - srcY
         if abs(dx) > abs(dy):
@@ -371,7 +376,7 @@ class KS0108(object):
             y = srcY // 8
             word = 2 ** (round(srcY - (8*y)))
             self.set_cursor(seg, round(y), round(x))
-            if prevX == x and prevY == y:
+            if round(prevX) == round(x) and round(prevY) == round(y):
                 word = word | prevWord
             self.data_write(word, 1)
             srcX += Xinc
