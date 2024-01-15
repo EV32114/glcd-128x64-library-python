@@ -220,9 +220,9 @@ class KS0108(object):
         :return:
         """
         # self.busy_chk()                      # Check if controller is busy
-        for i in range(8):
-            # self.mat[]
-            pass
+        if mode==1:
+            for i in range(8):
+                self.mat[7*(self.Line_Num-0xB8)+i, (self.chip_Num*64)+(self.Cursor_Pos-0x40)] = bool(value & (2 ** i))
         GPIO.output(self.rw, 0)
         GPIO.output(self.rs, mode)
         GPIO.output(self.d0, value & 0x01)
@@ -384,3 +384,7 @@ class KS0108(object):
             prevX = x
             prevY = y
             prevWord = word
+    def flip_screen(self):
+        for i in self.mat:
+            for j in i:
+                pass
