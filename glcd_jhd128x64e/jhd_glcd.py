@@ -220,7 +220,6 @@ class KS0108(object):
         :param mode: When RS = 0 Value is written as command to GLCD if RS = 1 written data is displayed on GLCD
         :return:
         """
-        # self.busy_chk()                      # Check if controller is busy
         if mode == 1:
             for i in range(8):
                 self.mat[7 * (self.Line_Num - 0xB8) + i, (self.chip_Num * 64) + (self.Cursor_Pos - 0x40)] = bool(
@@ -247,21 +246,6 @@ class KS0108(object):
         time.sleep(self.E_PULSE)
         GPIO.output(self.en, False)
         time.sleep(self.E_DELAY)
-
-    def busy_chk(self):
-        """
-        Description: This functions is used check whether GLCD is busy, waits until the controller is busy.
-        d7 pin is set as input to read busy signal and set back as output when busy signal is 0
-        :return: None
-        """
-        GPIO.setup(self.d7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)  # d7 pin set as input
-        GPIO.output(self.rw, 1)  # Register read mode
-        GPIO.output(self.rs, 0)  # Instruction register mode
-        self.toggle()  # Send pulse to enable signal
-
-        while GPIO.input(self.d7):  # Wait until busy
-            pass
-        GPIO.setup(self.d7, GPIO.OUT)  # d7 set back as output
 
     def set_cursor(self, chip, line, cursor_pos):
         """
@@ -325,7 +309,7 @@ class KS0108(object):
             self.Line_Num = 0xB8
         self.go_to_chipset(self.chip_num)
 
-    def print_str(self, data):
+    def print_str(self, data: str) -> None:
         """
         Description: The data is converted to string and sent as characters to print_chr function
         :param data: Data in the form of string/char/int/float
@@ -335,7 +319,7 @@ class KS0108(object):
         for i in range(len(string)):
             self.print_chr(string[i])
 
-    def print_chr(self, data):
+    def print_chr(self, data: str) -> None:
         """
         Description: In this function data received as character and by using the ASCII value of characters the data
         is fetched from lookup table and written in the display, if the data exceeds the line limit it is automatically
