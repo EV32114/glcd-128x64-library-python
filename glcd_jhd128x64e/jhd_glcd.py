@@ -1,22 +1,23 @@
 import time
 import RPi.GPIO as GPIO
 import numpy as np
+
 # 5x7 size font which have characters with ASCII value 32 to 127 that are displayed in GLCD
-look_up = [[0x00, 0x00, 0x00],                    # Space
-           [0x00, 0x4f, 0x00],                    # !
-           [0x00, 0x07, 0x00, 0x07, 0x00],        # "
+look_up = [[0x00, 0x00, 0x00],  # Space
+           [0x00, 0x4f, 0x00],  # !
+           [0x00, 0x07, 0x00, 0x07, 0x00],  # "
            [0x14, 0x7f, 0x14, 0x7f, 0x14, 0x00],  # #
            [0x24, 0x2a, 0x7f, 0x2a, 0x12, 0x00],  # $
            [0x23, 0x13, 0x08, 0x64, 0x62, 0x00],  # %
            [0x36, 0x49, 0x55, 0x22, 0x20, 0x00],  # &
-           [0x00, 0x05, 0x03, 0x00],              # '
-           [0x00, 0x1c, 0x22, 0x41, 0x00],        # (
-           [0x00, 0x41, 0x22, 0x1c, 0x00],        # )
+           [0x00, 0x05, 0x03, 0x00],  # '
+           [0x00, 0x1c, 0x22, 0x41, 0x00],  # (
+           [0x00, 0x41, 0x22, 0x1c, 0x00],  # )
            [0x14, 0x08, 0x3e, 0x08, 0x14, 0x00],  # *
            [0x08, 0x08, 0x3e, 0x08, 0x08, 0x00],  # +
-           [0x50, 0x30, 0x00],                    # ,
+           [0x50, 0x30, 0x00],  # ,
            [0x08, 0x08, 0x08, 0x08, 0x08, 0x00],  # -
-           [0x00, 0x60, 0x60, 0x00],              # .
+           [0x00, 0x60, 0x60, 0x00],  # .
            [0x20, 0x10, 0x08, 0x04, 0x02, 0x00],  # /
            [0x3e, 0x51, 0x49, 0x45, 0x3e, 0x00],  # 0
            [0x40, 0x42, 0x7f, 0x40, 0x40, 0x00],  # 1
@@ -28,9 +29,9 @@ look_up = [[0x00, 0x00, 0x00],                    # Space
            [0x01, 0x71, 0x09, 0x05, 0x03, 0x00],  # 7
            [0x36, 0x49, 0x49, 0x49, 0x36, 0x00],  # 8
            [0x06, 0x49, 0x49, 0x29, 0x1e, 0x00],  # 9
-           [0x00, 0x36, 0x36, 0x00],              # :
-           [0x00, 0x56, 0x36, 0x00],              # ;
-           [0x08, 0x14, 0x22, 0x41, 0x00],        # <
+           [0x00, 0x36, 0x36, 0x00],  # :
+           [0x00, 0x56, 0x36, 0x00],  # ;
+           [0x08, 0x14, 0x22, 0x41, 0x00],  # <
            [0x14, 0x14, 0x14, 0x14, 0x14, 0x00],  # =
            [0x00, 0x41, 0x22, 0x14, 0x08, 0x00],  # >
            [0x02, 0x01, 0x51, 0x09, 0x06, 0x00],  # ?
@@ -43,7 +44,7 @@ look_up = [[0x00, 0x00, 0x00],                    # Space
            [0x7f, 0x09, 0x09, 0x09, 0x01, 0x00],  # F
            [0x3e, 0x41, 0x49, 0x49, 0x7a, 0x00],  # G
            [0x7f, 0x08, 0x08, 0x08, 0x7f, 0x00],  # H
-           [0x00, 0x41, 0x7f, 0x41, 0x00],        # I
+           [0x00, 0x41, 0x7f, 0x41, 0x00],  # I
            [0x20, 0x40, 0x41, 0x3f, 0x01, 0x00],  # J
            [0x7f, 0x08, 0x14, 0x22, 0x41, 0x00],  # K
            [0x7f, 0x40, 0x40, 0x40, 0x40, 0x00],  # L
@@ -61,12 +62,12 @@ look_up = [[0x00, 0x00, 0x00],                    # Space
            [0x63, 0x14, 0x08, 0x14, 0x63, 0x00],  # X
            [0x07, 0x08, 0x70, 0x08, 0x07, 0x00],  # Y
            [0x61, 0x51, 0x49, 0x45, 0x43, 0x00],  # Z
-           [0x00, 0x7f, 0x41, 0x41, 0x00],        # [
+           [0x00, 0x7f, 0x41, 0x41, 0x00],  # [
            [0x02, 0x04, 0x08, 0x10, 0x20, 0x00],  # \
-           [0x00, 0x41, 0x41, 0x7f, 0x00],        # ]
+           [0x00, 0x41, 0x41, 0x7f, 0x00],  # ]
            [0x04, 0x02, 0x01, 0x02, 0x04, 0x00],  # ^
            [0x40, 0x40, 0x40, 0x40, 0x40, 0x00],  # _
-           [0x00, 0x00, 0x03, 0x05, 0x00],        # `
+           [0x00, 0x00, 0x03, 0x05, 0x00],  # `
            [0x20, 0x54, 0x54, 0x54, 0x78, 0x00],  # a
            [0x7F, 0x44, 0x44, 0x44, 0x38, 0x00],  # b
            [0x38, 0x44, 0x44, 0x44, 0x44, 0x00],  # c
@@ -75,16 +76,16 @@ look_up = [[0x00, 0x00, 0x00],                    # Space
            [0x04, 0x04, 0x7e, 0x05, 0x05, 0x00],  # f
            [0x08, 0x54, 0x54, 0x54, 0x3c, 0x00],  # g
            [0x7f, 0x08, 0x04, 0x04, 0x78, 0x00],  # h
-           [0x00, 0x44, 0x7d, 0x40, 0x00],        # i
-           [0x20, 0x40, 0x44, 0x3d, 0x00],        # j
-           [0x7f, 0x10, 0x28, 0x44, 0x00],        # k
-           [0x41, 0x7f, 0x40, 0x00],              # l
+           [0x00, 0x44, 0x7d, 0x40, 0x00],  # i
+           [0x20, 0x40, 0x44, 0x3d, 0x00],  # j
+           [0x7f, 0x10, 0x28, 0x44, 0x00],  # k
+           [0x41, 0x7f, 0x40, 0x00],  # l
            [0x7c, 0x04, 0x7c, 0x04, 0x78, 0x00],  # m
            [0x7c, 0x08, 0x04, 0x04, 0x78, 0x00],  # n
            [0x38, 0x44, 0x44, 0x44, 0x38, 0x00],  # o
            [0x7c, 0x14, 0x14, 0x14, 0x08, 0x00],  # p
            [0x08, 0x14, 0x14, 0x14, 0x7c, 0x00],  # q
-           [0x7c, 0x08, 0x04, 0x04, 0x00],        # r
+           [0x7c, 0x08, 0x04, 0x04, 0x00],  # r
            [0x48, 0x54, 0x54, 0x54, 0x24, 0x00],  # s
            [0x04, 0x04, 0x3f, 0x44, 0x44, 0x00],  # t
            [0x3c, 0x40, 0x40, 0x20, 0x7c, 0x00],  # u
@@ -94,7 +95,7 @@ look_up = [[0x00, 0x00, 0x00],                    # Space
            [0x0c, 0x50, 0x50, 0x50, 0x3c, 0x00],  # y
            [0x44, 0x64, 0x54, 0x4c, 0x44, 0x00],  # z
            [0x08, 0x36, 0x41, 0x41, 0x00, 0x00],  # {
-           [0x00, 0x00, 0x77, 0x00],              # |
+           [0x00, 0x00, 0x77, 0x00],  # |
            [0x00, 0x41, 0x41, 0x36, 0x08, 0x00],  # }
            [0x08, 0x08, 0x2a, 0x1c, 0x08, 0x00],  # ~
            [0x08, 0x1c, 0x2a, 0x08, 0x08, 0x00]]  # DEL
@@ -121,7 +122,7 @@ class KS0108(object):
         :param chip_set1: Chip selection for KS0108 IC2
         :param reset: reset signal, Display is OFF if reset=0 and ON if reset=1
         """
-        self.mat = np.full((64,128), False)
+        self.mat = np.full((64, 128), False)
         self.chip_set0 = chip_set0
         self.chip_set1 = chip_set1
         self.reset = reset
@@ -136,8 +137,8 @@ class KS0108(object):
         self.d5 = d5
         self.d6 = d6
         self.d7 = d7
-        GPIO.setwarnings(False)                        # Disable warnings
-        GPIO.setmode(GPIO.BCM)                         # Use BCM GPIO numbers
+        GPIO.setwarnings(False)  # Disable warnings
+        GPIO.setmode(GPIO.BCM)  # Use BCM GPIO numbers
         GPIO.setup(self.en, GPIO.OUT)
         GPIO.setup(self.rw, GPIO.OUT)
         GPIO.setup(self.rs, GPIO.OUT)
@@ -164,23 +165,23 @@ class KS0108(object):
         self.chip_Num = 0
         self.Line_Num = 0
         self.Cursor_Pos = 0
-        self.chipnum = 0
+        self.chip_num = 0
 
     def use_chipset0(self):
         """
         Description: This function enables Chipset 1(KS0108 IC1) of GLCD.
         :return: None
         """
-        GPIO.output(self.chip_set0, 0)       # Turn ON left controller
-        GPIO.output(self.chip_set1, 1)       # Turn OFF right controller
+        GPIO.output(self.chip_set0, 0)  # Turn ON left controller
+        GPIO.output(self.chip_set1, 1)  # Turn OFF right controller
 
     def use_chipset1(self):
         """
         Description: This function enables Chipset 2(KS0108 IC2) of GLCD.
         :return:
         """
-        GPIO.output(self.chip_set0, 1)       # Turn OFF left controller
-        GPIO.output(self.chip_set1, 0)       # Turn ON right controller
+        GPIO.output(self.chip_set0, 1)  # Turn OFF left controller
+        GPIO.output(self.chip_set1, 0)  # Turn ON right controller
 
     def clear(self):
         """
@@ -209,7 +210,7 @@ class KS0108(object):
         self.data_write(0xC0, 0)
         self.use_chipset1()
         self.data_write(0xC0, 0)
-        self.clear()                        # Clears display and move the cursor to beginning of Chip 0
+        self.clear()  # Clears display and move the cursor to beginning of Chip 0
 
     def data_write(self, value, mode):
         """
@@ -220,9 +221,10 @@ class KS0108(object):
         :return:
         """
         # self.busy_chk()                      # Check if controller is busy
-        if mode==1:
+        if mode == 1:
             for i in range(8):
-                self.mat[7*(self.Line_Num-0xB8)+i, (self.chip_Num*64)+(self.Cursor_Pos-0x40)] = bool(value & (2 ** i))
+                self.mat[7 * (self.Line_Num - 0xB8) + i, (self.chip_Num * 64) + (self.Cursor_Pos - 0x40)] = bool(
+                    value & (2 ** i))
         GPIO.output(self.rw, 0)
         GPIO.output(self.rs, mode)
         GPIO.output(self.d0, value & 0x01)
@@ -233,7 +235,7 @@ class KS0108(object):
         GPIO.output(self.d5, value & 0x20)
         GPIO.output(self.d6, value & 0x40)
         GPIO.output(self.d7, value & 0x80)
-        self.toggle()                         # Enable pulse to prevent from loss of data
+        self.toggle()  # Enable pulse to prevent from loss of data
 
     def toggle(self):
         """
@@ -253,13 +255,13 @@ class KS0108(object):
         :return: None
         """
         GPIO.setup(self.d7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)  # d7 pin set as input
-        GPIO.output(self.rw, 1)                                   # Register read mode
-        GPIO.output(self.rs, 0)                                   # Instruction register mode
-        self.toggle()                                             # Send pulse to enable signal
+        GPIO.output(self.rw, 1)  # Register read mode
+        GPIO.output(self.rs, 0)  # Instruction register mode
+        self.toggle()  # Send pulse to enable signal
 
-        while GPIO.input(self.d7):                                # Wait until busy
+        while GPIO.input(self.d7):  # Wait until busy
             pass
-        GPIO.setup(self.d7, GPIO.OUT)                             # d7 set back as output
+        GPIO.setup(self.d7, GPIO.OUT)  # d7 set back as output
 
     def set_cursor(self, chip, line, cursor_pos):
         """
@@ -270,19 +272,19 @@ class KS0108(object):
         :return: None
         """
         if chip > 0x01 or cursor_pos >= 128 or line > 0x07:
-            raise ValueError("Invalid input")               # Error raised if input is out of boundary
+            raise ValueError("Invalid input")  # Error raised if input is out of boundary
         if ((chip == 0x00) or (chip == 0x01)) and ((line >= 0x00) and (line <= 0x07)) and (
                 (cursor_pos >= 0x00) and (cursor_pos < 128)):
             if chip == 0x00:
-                self.use_chipset0()                         # Enable chipset 0
+                self.use_chipset0()  # Enable chipset 0
             else:
-                self.use_chipset1()                         # Enable chipset 1
+                self.use_chipset1()  # Enable chipset 1
             self.chip_Num = chip
-            self.chipnum = chip
+            self.chip_num = chip
             self.Line_Num = line + 0xB8
             self.Cursor_Pos = cursor_pos + 0x40
-            self.data_write(self.Cursor_Pos, 0)             # Cursor position is sent to GLCD as command
-            self.data_write(self.Line_Num, 0)               # Line number is sent to GLCD as command
+            self.data_write(self.Cursor_Pos, 0)  # Cursor position is sent to GLCD as command
+            self.data_write(self.Line_Num, 0)  # Line number is sent to GLCD as command
 
     def go_to_chipset(self, chip):
         """
@@ -308,7 +310,7 @@ class KS0108(object):
         """
         if value <= 0x07:
             self.Line_Num = value + 0xB8
-            self.go_to_chipset(self.chipnum)
+            self.go_to_chipset(self.chip_num)
         else:
             raise ValueError("Value must be between 0 to 7")
 
@@ -321,7 +323,7 @@ class KS0108(object):
         self.Line_Num += 1
         if self.Line_Num > 0xBF:
             self.Line_Num = 0xB8
-        self.go_to_chipset(self.chipnum)
+        self.go_to_chipset(self.chip_num)
 
     def print_str(self, data):
         """
@@ -339,7 +341,7 @@ class KS0108(object):
         is fetched from lookup table and written in the display, if the data exceeds the line limit it is automatically
         shifted to the next line.
         :param data: Data received as Characters
-        :return: none
+        :return: None
 
         Note: ASCII value of char is subtracted by 32 to match with lookup table address
         """
@@ -347,43 +349,52 @@ class KS0108(object):
         if data == "\n":
             self.go_to_nextline()
         if data != "\n":
-            if (self.chip_Num == 0x00) & (self.Cursor_Pos >= 0x80):       # Shift to chipset 1 if Cursor position > 63
+            if (self.chip_Num == 0x00) & (self.Cursor_Pos >= 0x80):  # Shift to chipset 1 if Cursor position > 63
                 self.go_to_chipset(1)
             for j in range(len(look_up[length])):
-                data1 = (look_up[length][j])                              # Fetching data from lookup table
+                data1 = (look_up[length][j])  # Fetching data from lookup table
                 self.data_write(data1, 1)
                 self.Cursor_Pos += 1
                 if (self.chip_Num == 0x01) and (self.Cursor_Pos > 0x7F):  # Shift to next line if Cursor position > 127
                     self.go_to_nextline()
-                if self.Cursor_Pos >= 0x80:                               # Shift to chipset 1 if Cursor position > 63
+                if self.Cursor_Pos >= 0x80:  # Shift to chipset 1 if Cursor position > 63
                     self.go_to_chipset(1)
 
-    def draw_line(self, srcX, srcY, desX, desY):
-        dx = desX - srcX
-        dy = desY - srcY
+    def draw_line(self, src_x: int, src_y: int, des_x: int, des_y: int) -> None:
+        """
+        Description: Draws a line on the LCD screen
+        :param src_x: X value of source point (Between 0 and 128)
+        :param src_y: Y value of source point (Between 0 and 64)
+        :param des_x: X value of destination point (Between 0 and 128)
+        :param des_y: Y value of destination point (Between 0 and 64)
+        :return: None
+        """
+        dx = des_x - src_x
+        dy = des_y - src_y
         if abs(dx) > abs(dy):
             steps = abs(dx)
         else:
             steps = abs(dy)
-        Xinc = dx / steps
-        Yinc = dy / steps
-        prevX = srcX
-        prevY = srcY
-        prevWord = 0
+        x_inc = dx / steps
+        y_inc = dy / steps
+        prev_x = src_x
+        prev_y = src_y
+        prev_word = 0
         for i in range(steps):
-            seg = 0 if srcX <= 63 else 1
-            x = srcX if srcX <= 63 else srcX - 64
-            y = srcY // 8
-            word = 2 ** (round(srcY - (8*y)))
+            seg = 0 if src_x <= 63 else 1
+            x = src_x if src_x <= 63 else src_x - 64
+            y = src_y // 8
+            word = 2 ** (round(src_y - (8 * y)))
             self.set_cursor(seg, round(y), round(x))
-            if round(prevX) == round(x) and round(prevY) == round(y):
-                word = word | prevWord
+            if round(prev_x) == round(x) and round(prev_y) == round(y):
+                word = word | prev_word
             self.data_write(word, 1)
-            srcX += Xinc
-            srcY += Yinc
-            prevX = x
-            prevY = y
-            prevWord = word
+            src_x += x_inc
+            src_y += y_inc
+            prev_x = x
+            prev_y = y
+            prev_word = word
+
     def flip_screen(self):
         for i in self.mat:
             for j in i:
