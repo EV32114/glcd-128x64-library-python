@@ -309,22 +309,24 @@ class KS0108(object):
             self.Line_Num = 0xB8
         self.go_to_chipset(self.chip_num)
 
-    def print_str(self, data: str) -> None:
+    def print_str(self, data: str, invert=False) -> None:
         """
         Description: The data is converted to string and sent as characters to print_chr function
         :param data: Data in the form of string/char/int/float
+        :param invert: True to invert the printed string
         :return: None
         """
         string = str(data)
         for i in range(len(string)):
-            self.print_chr(string[i])
+            self.print_chr(string[i], invert)
 
-    def print_chr(self, data: str) -> None:
+    def print_chr(self, data: str, invert=False) -> None:
         """
         Description: In this function data received as character and by using the ASCII value of characters the data
         is fetched from lookup table and written in the display, if the data exceeds the line limit it is automatically
         shifted to the next line.
         :param data: Data received as Characters
+        :param invert: True to invert the printed character
         :return: None
 
         Note: ASCII value of char is subtracted by 32 to match with lookup table address
@@ -337,6 +339,8 @@ class KS0108(object):
                 self.go_to_chipset(1)
             for j in range(len(look_up[length])):
                 data1 = (look_up[length][j])  # Fetching data from lookup table
+                if invert:
+                    data1 = 0b11111111 - data1
                 self.data_write(data1, 1)
                 self.Cursor_Pos += 1
                 if (self.chip_Num == 0x01) and (self.Cursor_Pos > 0x7F):  # Shift to next line if Cursor position > 127
@@ -378,8 +382,3 @@ class KS0108(object):
             prev_x = x
             prev_y = y
             prev_word = word
-
-    def flip_screen(self):
-        for i in self.mat:
-            for j in i:
-                pass
