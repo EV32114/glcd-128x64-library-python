@@ -6,7 +6,7 @@ import numpy as np
 def list_weapons(GLCD, l):
     GLCD.clear()
     GLCD.set_cursor(0,0,0)
-    GLCD.print_str('name|room|in|Time\n')
+    GLCD.print_str('name room in  Time\n')
     chosen = 0
     start = 0
     user_input = ''
@@ -36,7 +36,7 @@ def list_weapons(GLCD, l):
 def print_menu(GLCD):
     l = []
     for i in range(10):
-        l.append([f'w{i}', f'lab{(i % 2) + 1}', i % 2, '11:25:55'])
+        l.append([f'w{i}', f'lab{(i % 2) + 1}', i % 2, '12.1  11:25'])
     x=''
     while x=='':
         GLCD.set_cursor(0,0,0)
