@@ -110,12 +110,11 @@ class KS0108(object):
     E_PULSE = 0.0000001
     E_DELAY = 0.0000005
 
-    def __init__(self, rs, rw, en, d0, d1, d2, d3, d4, d5, d6, d7, chip_set0, chip_set1, reset):
+    def __init__(self, rs, en, d0, d1, d2, d3, d4, d5, d6, d7, chip_set0, chip_set1, reset):
         """
         Description: This function is responsible for pin map, initialize GPIO pins (GPIO.BCM is used) and
         initialize the chip, line and cursor position
         :param rs: Instruction Register Selection if rs=0 and Data Register Selection if rs=1
-        :param rw: If rw=0 register Read and if rw=1 register write
         :param en: Enable signal
         :param d0...d7: 8 bit input/output lines
         :param chip_set0: Chip selection for KS0108 IC1
@@ -128,7 +127,6 @@ class KS0108(object):
         self.reset = reset
         self.en = en
         self.rs = rs
-        self.rw = rw
         self.d0 = d0
         self.d1 = d1
         self.d2 = d2
@@ -140,7 +138,6 @@ class KS0108(object):
         GPIO.setwarnings(False)  # Disable warnings
         GPIO.setmode(GPIO.BCM)  # Use BCM GPIO numbers
         GPIO.setup(self.en, GPIO.OUT)
-        GPIO.setup(self.rw, GPIO.OUT)
         GPIO.setup(self.rs, GPIO.OUT)
         GPIO.setup(self.d0, GPIO.OUT)
         GPIO.setup(self.d1, GPIO.OUT)
@@ -153,7 +150,6 @@ class KS0108(object):
         GPIO.setup(self.chip_set0, GPIO.OUT)
         GPIO.setup(self.chip_set1, GPIO.OUT)
         GPIO.output(self.rs, 0)
-        GPIO.output(self.rw, 0)
         GPIO.output(self.en, 0)
         GPIO.output(self.chip_set0, 0)
         GPIO.output(self.chip_set1, 0)
@@ -224,7 +220,6 @@ class KS0108(object):
             for i in range(8):
                 self.mat[7 * (self.Line_Num - 0xB8) + i, (self.chip_Num * 64) + (self.Cursor_Pos - 0x40)] = bool(
                     value & (2 ** i))
-        GPIO.output(self.rw, 0)
         GPIO.output(self.rs, mode)
         GPIO.output(self.d0, value & 0x01)
         GPIO.output(self.d1, value & 0x02)

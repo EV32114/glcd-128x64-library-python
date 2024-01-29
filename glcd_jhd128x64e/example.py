@@ -1,9 +1,37 @@
 import jhd_glcd  # glcd_jhd128x64e
 import time
 import numpy as np
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BCM)  # Use BCM GPIO numbers
+
+STATE = 0  # menu screen
+GLCD = None
+
+BUTTON_ONE = 13
+BUTTON_TWO = 27
+
+def button_callback(channel):
+    global GLCD
+    global STATE
+    if STATE == 0:
+        GLCD.set_cursor(0,2,0)
+        GLCD.print_str("# Show weapon list\n")
+        GLCD.print_str("# Show all logs", True)
+        STATE = 1
+    elif STATE == 1:
+        # list_weapons(GLCD, l)
+        STATE = 0
+
+GPIO.setup(BUTTON_ONE, GPIO.IN)
+# GPIO.setup(BUTTON_TWO, GPIO.IN)
+
+GPIO.add_event_detect(BUTTON_ONE,GPIO.RISING,callback=button_callback, bouncetime=250)
+# GPIO.add_event_detect(BUTTON_TWO,GPIO.RISING,callback=button_callback, bouncetime=250)
 
 
-def list_weapons(GLCD, l):
+def list_weapons(l):
+    global GLCD
     GLCD.clear()
     GLCD.set_cursor(0,0,0)
     GLCD.print_str('name room in  Time\n')
@@ -33,35 +61,28 @@ def list_weapons(GLCD, l):
                     start -= 1
 
 
-def print_menu(GLCD):
+def print_menu():
+    global GLCD
+    global STATE
+    STATE = 0
     l = []
     for i in range(10):
         l.append([f'w{i}', f'lab{(i % 2) + 1}', i % 2, '12.1  11:25'])
-    x=''
-    while x=='':
-        GLCD.set_cursor(0,0,0)
-        GLCD.print_str("Please choose a menu:\n\n")
-        GLCD.print_str("# Show weapon list\n", True)
-        GLCD.print_str("# Show all logs")
-        x=input()
-        if x!='':
-            break
-        GLCD.set_cursor(0,2,0)
-        GLCD.print_str("# Show weapon list\n")
-        GLCD.print_str("# Show all logs", True)
-        x=input()
-        if x != '':
-            list_weapons(GLCD, l)
-            break
+    GLCD.set_cursor(0,0,0)
+    GLCD.print_str("Please choose a menu:\n\n")
+    GLCD.print_str("# Show weapon list\n", True)
+    GLCD.print_str("# Show all logs")
+    input()
 
 
 def main():
-    GLCD = jhd_glcd.KS0108(rs=4, rw=21, en=7, d0=12, d1=16, 
-                              d2=26, d3=14, d4=15, d5=17, 
+    global GLCD
+    GLCD = jhd_glcd.KS0108(rs=3, en=7, d0=12, d1=16, 
+                              d2=26, d3=14, d4=15, d5=2, 
                               d6=18, d7=25, chip_set0=22, 
                               chip_set1=23, reset=24)
     GLCD.start()
-    print_menu(GLCD)
+    print_menu()
     GLCD.clear()
 
 
