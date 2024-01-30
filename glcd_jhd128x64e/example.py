@@ -16,6 +16,7 @@ BUTTON_ONE = 13
 BUTTON_TWO = 27
 BUTTON_THREE = 17
 
+
 def print_menu(choice):
     global GLCD
     GLCD.set_cursor(0,0,0)
