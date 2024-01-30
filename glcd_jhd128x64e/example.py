@@ -45,10 +45,8 @@ class Menus:
     @staticmethod
     def all_logs(log_list):
         global GLCD
-        GLCD.clear()
         GLCD.set_cursor(0, 0, 0)
         GLCD.print_str('name room in  Time\n')
-        GLCD.set_cursor(0, 1, 0)  # maybe can remove this line
         start = Menus.cursor - 5 if Menus.cursor - 5 > 0 else 0
         for idx, w in enumerate(log_list[start:start + 6]):
             GLCD.print_str(f'{w[0]: <6} {w[1]: <5} {w[2]: <3} {w[3]}\n',
@@ -61,10 +59,11 @@ class Menus:
                     GLCD.print_str('  ')
                 break
 
-    FUNC_LIST = [weapon_list, all_logs]
+    FUNC_LIST = [weapon_list.__func__, all_logs.__func__]
 
 
 def up_press(channel):
+    print("UP PRESSED")
     if Menus.state == MENUS.MAIN:
         if Menus.cursor > 0:
             Menus.cursor -= 1
@@ -78,6 +77,7 @@ def up_press(channel):
 
 
 def down_press(channel):
+    print('DOWN PRESSED')
     if Menus.state == MENUS.MAIN:
         if Menus.cursor < 1:
             Menus.cursor += 1
@@ -91,18 +91,21 @@ def down_press(channel):
 
 
 def select_press(channel):
+    global GLCD
     if Menus.state == MENUS.MAIN:
-        Menus.FUNC_LIST[Menus.cursor](ll)
+        GLCD.clear()
         Menus.state = MENUS(Menus.cursor + 1)
+        Menus.cursor = 0
+        Menus.FUNC_LIST[Menus.state.value - 1](ll)
 
 
 GPIO.setup(BUTTON_ONE, GPIO.IN)
 GPIO.setup(BUTTON_TWO, GPIO.IN)
 GPIO.setup(BUTTON_THREE, GPIO.IN)
 
-GPIO.add_event_detect(BUTTON_ONE, GPIO.RISING, callback=up_press, bouncetime=250)
-GPIO.add_event_detect(BUTTON_TWO, GPIO.RISING, callback=down_press, bouncetime=250)
-GPIO.add_event_detect(BUTTON_THREE, GPIO.RISING, callback=select_press, bouncetime=250)
+GPIO.add_event_detect(BUTTON_ONE, GPIO.RISING, callback=up_press, bouncetime=500)
+GPIO.add_event_detect(BUTTON_TWO, GPIO.RISING, callback=down_press, bouncetime=500)
+GPIO.add_event_detect(BUTTON_THREE, GPIO.RISING, callback=select_press, bouncetime=500)
 
 
 def main():
